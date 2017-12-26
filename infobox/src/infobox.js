@@ -66,6 +66,7 @@
  *  mouseup, click, dblclick, touchstart, touchend, touchmove, and contextmenu events in the InfoBox
  *  (default is <tt>false</tt> to mimic the behavior of a <tt>google.maps.InfoWindow</tt>). Set
  *  this property to <tt>true</tt> if the InfoBox is being used as a map label.
+ * @property {string} targetId The pane where the InfoBox is to Element
  */
 
 /**
@@ -112,6 +113,7 @@ function InfoBox(opt_opts) {
   this.alignBottom_ = opt_opts.alignBottom || false;
   this.pane_ = opt_opts.pane || "floatPane";
   this.enableEventPropagation_ = opt_opts.enableEventPropagation || false;
+  this.targetId_ = opt_opts.targetId || null;
 
   this.div_ = null;
   this.closeListener_ = null;
@@ -178,6 +180,9 @@ InfoBox.prototype.createInfoBoxDiv_ = function () {
     }
 
     // Add the InfoBox DIV to the DOM
+    if(this.targetId_)
+        this.getPanes()[this.pane_] = document.getElementById(this.targetId_);
+
     this.getPanes()[this.pane_].appendChild(this.div_);
 
     this.addClickHandler_();
@@ -219,7 +224,7 @@ InfoBox.prototype.createInfoBoxDiv_ = function () {
 
         this.eventListeners_.push(google.maps.event.addDomListener(this.div_, events[i], cancelHandler));
       }
-      
+
       // Workaround for Google bug that causes the cursor to change to a pointer
       // when the mouse moves over a marker underneath InfoBox.
       this.eventListeners_.push(google.maps.event.addDomListener(this.div_, "mouseover", function (e) {
@@ -485,7 +490,7 @@ InfoBox.prototype.draw = function () {
   var pixPosition = this.getProjection().fromLatLngToDivPixel(this.position_);
 
   this.div_.style.left = (pixPosition.x + this.pixelOffset_.width) + "px";
-  
+
   if (this.alignBottom_) {
     this.div_.style.bottom = -(pixPosition.y + this.pixelOffset_.height) + "px";
   } else {
@@ -571,6 +576,10 @@ InfoBox.prototype.setOptions = function (opt_opts) {
   if (typeof opt_opts.enableEventPropagation !== "undefined") {
 
     this.enableEventPropagation_ = opt_opts.enableEventPropagation;
+  }
+  if (typeof opt_opts.targetId !== "undefined") {
+
+    this.targetId_ = opt_opts.targetId;
   }
 
   if (this.div_) {
@@ -773,7 +782,7 @@ InfoBox.prototype.open = function (map, anchor) {
 
     this.mapListener_ = google.maps.event.addListener(anchor, "map_changed", function() {
       me.setMap(this.map);
-    });    
+    });
   }
 
   this.setMap(map);
@@ -798,7 +807,7 @@ InfoBox.prototype.close = function () {
   }
 
   if (this.eventListeners_) {
-    
+
     for (i = 0; i < this.eventListeners_.length; i++) {
 
       google.maps.event.removeListener(this.eventListeners_[i]);
@@ -813,11 +822,11 @@ InfoBox.prototype.close = function () {
   }
 
   if (this.mapListener_) {
-    
+
     google.maps.event.removeListener(this.mapListener_);
-    this.mapListener_ = null;    
+    this.mapListener_ = null;
   }
- 
+
   if (this.contextListener_) {
 
     google.maps.event.removeListener(this.contextListener_);
